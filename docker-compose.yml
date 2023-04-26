@@ -1,0 +1,73 @@
+version: "3.8"
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - 2228:80
+    depends_on:
+      - web
+    volumes:
+      - static_volume:/home/app/web/sales/staticfiles
+      - media_volume:/home/app/web/sales/media
+  web:
+    build: .
+    command: gunicorn --chdir sales/ sales.wsgi:application --bind 0.0.0.0:8000
+    entrypoint: ["/home/app/web/entrypoint.sh"]
+    env_file:
+      - ./.env.dev
+    volumes:
+      - static_volume:/home/app/web/sales/staticfiles
+      - media_volume:/home/app/web/sales/media
+    depends_on:
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
+    expose:
+      - 8000
+  db:
+    image: postgres:15.1-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=zepino76
+      - POSTGRES_DB=sales
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  redis:
+    image: redis:7.0.11-alpine
+    expose:
+        - 6379
+    volumes:
+      - redis_data:/data
+  worker:
+    build:
+      context: .
+    command: celery --workdir sales/ -A sales worker
+    depends_on:
+      - redis
+      - web
+    env_file:
+      - ./.env.dev
+    volumes:
+      - media_volume:/home/app/web/sales/media
+  beat:
+    build:
+      context: .
+    command: celery --workdir sales/ -A sales beat --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    depends_on:
+      - redis
+      - web
+    env_file:
+      - ./.env.dev
+    volumes:
+      - media_volume:/home/app/web/sales/media
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
+  redis_data:
