@@ -58,6 +58,7 @@ services:
   beat:
     build:
       context: .
+    restart: unless-stopped
     command: celery --workdir sales/ -A sales beat --scheduler django_celery_beat.schedulers:DatabaseScheduler
     depends_on:
       - redis
