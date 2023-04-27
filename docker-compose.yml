@@ -49,7 +49,7 @@ services:
   worker:
     build:
       context: .
-    command: celery --workdir sales/ -A sales worker --concurrency=2
+    command: celery --workdir sales/ -A sales worker
     depends_on:
       - redis
       - web

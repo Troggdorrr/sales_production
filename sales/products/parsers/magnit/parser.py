@@ -50,6 +50,7 @@ class MagnitParser(BaseParser):
                 continue
             except Exception as e:
                 logging.exception("Error in magnit parser")
+                continue
 
             self._save_product_with_shops(product, city)
 
