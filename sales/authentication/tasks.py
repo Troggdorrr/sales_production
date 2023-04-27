@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.template.loader import render_to_string
 
+from os import environ
+
 from sales.celery import app
 
 
@@ -25,13 +27,14 @@ def send_success_signup_email(user_pk: int) -> None:
 
 @app.task
 def send_reset_password_email(email: str, reset_uuid: str) -> None:
+    host = environ.get("HOST")
     message = render_to_string(
         "authentication/reset_password_mail.html",
-        {"reset_link": f"http://localhost:2228/reset-password?uuid={reset_uuid}"},
+        {"reset_link": f"{host}/reset-password?uuid={reset_uuid}"},
     )
     send_mail(
         subject="Восстановление пароля",
-        message=f"Ссылка для восстановления пароля: http://localhost:2228/reset-password?uuid={reset_uuid}",
+        message=f"Ссылка для восстановления пароля: {host}/reset-password?uuid={reset_uuid}",
         html_message=message,
         from_email=settings.EMAIL_HOST_USER,
         recipient_list=[email],
