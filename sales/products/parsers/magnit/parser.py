@@ -44,15 +44,20 @@ class MagnitParser(BaseParser):
         for product_link in client.iter_product_links(promo_types):
             try:
                 product = client.get_product(product_link.id)
-                if not product.price or not product.promo_price:
-                    continue
             except ProductDoesNotExists:
                 continue
             except Exception as e:
                 logging.exception("Error in magnit parser")
                 continue
-
-            self._save_product_with_shops(product, city)
+            
+            if product.price is None or product.promo_price is None:
+                continue
+            
+            try:
+                self._save_product_with_shops(product, city)
+            except Exception as e:
+                logging.exception("Error in save product")
+                continue
 
     def _save_product_with_shops(self, product: ApiProduct, city: City):
         product_object = self._save_product(product)
