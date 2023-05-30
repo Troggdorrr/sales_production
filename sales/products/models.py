@@ -60,7 +60,7 @@ class Promo(models.Model):
 
 class Product(models.Model):
     title = models.CharField("Название товара", max_length=255)
-    poster = models.URLField("Постер", null=True, blank=True)
+    poster = models.CharField("Постер", null=True, blank=True, max_length=500)
     price = models.FloatField("Цена")
     promo_price = models.FloatField("Цена по скидке")
     url = models.URLField("Ссылка на товар")

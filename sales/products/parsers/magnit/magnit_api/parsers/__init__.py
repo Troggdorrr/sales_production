@@ -1,3 +1,3 @@
-from .product_link_parser import ProductLinkParser
+from .city_parser import CityParser
+from .shop_parser import ShopParser
 from .product_parser import ProductParser
-from .location_parser import LocationParser

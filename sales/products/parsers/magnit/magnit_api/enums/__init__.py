@@ -1,1 +1,0 @@
-from .promo_type import PromoType

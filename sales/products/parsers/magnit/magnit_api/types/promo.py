@@ -6,4 +6,3 @@ from datetime import date
 class Promo:
     date_begin: date
     date_end: date
-    type: str

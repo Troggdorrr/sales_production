@@ -1,6 +1,8 @@
 from dataclasses import dataclass
+from datetime import date
 
 
 @dataclass(frozen=True)
-class Store:
+class Shop:
+    id: int
     address: str

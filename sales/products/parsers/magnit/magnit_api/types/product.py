@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
 from .promo import Promo
-from .store import Store
 
 
 @dataclass(frozen=True)
@@ -13,4 +12,3 @@ class Product:
     price: float
     promo_price: float
     promo: Promo
-    stores: list[Store]

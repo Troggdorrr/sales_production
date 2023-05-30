@@ -1,0 +1,3 @@
+from .get_cities_request import GetCitiesRequest
+from .get_products_request import GetProductsRequest
+from .get_shops_request import GetShopsRequest

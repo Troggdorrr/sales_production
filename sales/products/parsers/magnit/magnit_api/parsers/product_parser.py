@@ -1,89 +1,41 @@
-from bs4 import BeautifulSoup, Tag
+from magnit_api.utils import DateParser
 
-from functools import lru_cache
-import re
-
-from magnit_api.utils import ProductHrefNormalizer
-from magnit_api.types import Product, Promo, Store
+from magnit_api.types import Product, Promo
 from magnit_api.settings import BASE_URL
-
-from .promo_parser import PromoParser
-from .store_parser import StoreParser
 
 
 class ProductParser:
-    def __init__(self, raw_product: str):
-        self._markup = raw_product
-        self._parser = BeautifulSoup(self._markup, "lxml")
+    def __init__(self, raw_products: dict) -> None:
+        self.raw_products = raw_products
+    
+    def get_products(self) -> list[Product]:
+        products = []
 
-    def parse(self) -> Product:
+        for raw_product in self.raw_products:
+            products.append(self._get_product(raw_product))
+
+        return products
+    
+    def _get_product(self, raw_product: dict) -> Product:
         return Product(
-            id=self._parse_id(),
-            href=self._parse_href(),
-            name=self._parse_name(),
-            poster=self._parse_poster(),
-            price=self._parse_price(),
-            promo_price=self._parse_promo_price(),
-            promo=self._parse_promo(),
-            stores=self._parse_stores(),
+            id=raw_product["id"],
+            href=self.__get_href(raw_product["productCode"]),
+            name=raw_product["name"],
+            poster=raw_product["image"],
+            price=self.__normalize_price(raw_product.get("oldPrice")),
+            promo_price=self.__normalize_price(raw_product.get("price")),
+            promo=self.__get_promo(raw_product)
         )
 
-    def _parse_id(self) -> int:
-        normalizer = self.__get_normalizer()
-        return normalizer.get_id()
-
-    def _parse_href(self) -> str:
-        normalizer = self.__get_normalizer()
-        return normalizer.get_href()
-
-    @lru_cache
-    def __get_normalizer(self) -> ProductHrefNormalizer:
-        tag = self.__get_href_tag()
-        return ProductHrefNormalizer(tag["content"])
-
-    def __get_href_tag(self) -> Tag:
-        return self._parser.find("meta", {"property": "og:url"})
-
-    def _parse_name(self) -> str:
-        return self._parser.find("div", {"class": "action__title"}).get_text(strip=True)
-
-    def _parse_poster(self) -> str | None:
-        tag = self._parser.find("img", {"class": "action__image"})
-        if not tag:
-            return None
-        return BASE_URL + tag["data-src"]
-
-    def _parse_price(self) -> float | None:
-        tag = self._parser.find("div", {"class": "label__price_old"})
-        if not tag:
-            return None
-        return self.__parse_price_label(tag)
-
-    def _parse_promo_price(self) -> float | None:
-        tag = self._parser.find("div", {"class": "label__price_new"})
-        if not tag:
-            return None
-        return self.__parse_price_label(tag)
-
-    def __parse_price_label(self, tag: Tag) -> float:
-        integer_part = tag.find("span", {"class": "label__price-integer"}).get_text(
-            strip=True
+    def __get_href(self, product_code: str) -> str:
+        return BASE_URL + "/promo/" + product_code
+    
+    def __normalize_price(self, raw_price: int) -> float:
+        if raw_price:
+            return raw_price / 100
+    
+    def __get_promo(self, raw_product: dict) -> Promo:
+        return Promo(
+            date_begin=DateParser.parse_date(raw_product["startDate"]),
+            date_end=DateParser.parse_date(raw_product["endDate"]),
         )
-        decimal_part = tag.find("span", {"class": "label__price-decimal"}).get_text(
-            strip=True
-        )
-        price = f"{integer_part}.{decimal_part}"
-        return float(price)
-
-    def _parse_promo(self) -> Promo:
-        raw_promo = self._parser.find("div", {"class": "action__header"})
-        parser = PromoParser(raw_promo)
-        return parser.parse()
-
-    def _parse_stores(self) -> list[Store]:
-        raw_promo_data = self.__parse_promo_data()
-        parser = StoreParser(raw_promo_data)
-        return parser.parse()
-
-    def __parse_promo_data(self) -> str:
-        return re.search(r"var promoData = (.*?);", self._markup).group(1)

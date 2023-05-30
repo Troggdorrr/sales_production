@@ -1,5 +1,4 @@
-from .product_link import ProductLink
+from .city import City
 from .product import Product
 from .promo import Promo
-from .store import Store
-from .location import Location
+from .shop import Shop
