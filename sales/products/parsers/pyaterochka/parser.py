@@ -28,9 +28,12 @@ class PyaterochkaParser(BaseParser):
 
     def _save_city(self, city: str) -> City:
         city_object, is_created = City.objects.get_or_create(
-            name=city
+            name=self.__normalize_city(city)
         )
         return city_object
+    
+    def __normalize_city(self, city: str) -> str:
+        return city.split(".")[-1]
 
     def _save_product(self, product: ApiProduct, shop: Shop):
         product_object, is_created = Product.objects.update_or_create(
