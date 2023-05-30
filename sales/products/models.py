@@ -31,7 +31,7 @@ class Donor(models.Model):
 
 
 class Shop(models.Model):
-    address = models.CharField("Адрес магазина", max_length=100)
+    address = models.CharField("Адрес магазина", max_length=200)
     city = models.ForeignKey(
         City, verbose_name="Город", on_delete=models.CASCADE, related_name="shops"
     )
