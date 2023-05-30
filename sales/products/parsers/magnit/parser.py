@@ -21,13 +21,11 @@ class MagnitParser(BaseParser):
         client = Client()
         for city in client.get_cities():
             city_object = self._save_city(city)
-            print(city_object)
             for shop in client.get_shops(city):
                 shop_object = self._save_shop(shop, city_object)
-                print(shop_object)
                 for product in client.get_products(shop):
                     if product.price and product.promo_price:
-                        print(self._save_product(product, shop_object))
+                        self._save_product(product, shop_object)
 
     def _save_city(self, city: ApiCity) -> City:
         city_object, is_created = City.objects.get_or_create(

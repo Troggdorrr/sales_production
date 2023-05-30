@@ -12,7 +12,10 @@ class ProductParser:
         products = []
 
         for raw_product in self.raw_products:
-            products.append(self._get_product(raw_product))
+            try:
+                products.append(self._get_product(raw_product))
+            except:
+                pass
 
         return products
     
