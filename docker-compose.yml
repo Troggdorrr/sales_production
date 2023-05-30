@@ -12,7 +12,7 @@ services:
       - frontend_volume:/home/app/web/frontend
   web:
     build: .
-    command: gunicorn --chdir sales/ sales.wsgi:application --bind 0.0.0.0:8000
+    command: gunicorn --workers=4 --chdir sales/ sales.wsgi:application --bind 0.0.0.0:8000
     entrypoint: ["/home/app/web/entrypoint.sh"]
     env_file:
       - ./.env.dev
